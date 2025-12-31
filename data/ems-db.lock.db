@@ -1,0 +1,6 @@
+#FileLock
+#Wed Dec 31 11:30:36 JST 2025
+hostName=192.168.0.7
+id=19b723e2b4063aafab259a47bd3e239078412de6ecb
+method=file
+server=192.168.0.7\:50911

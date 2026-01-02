@@ -1,117 +1,164 @@
-# EMS Console — 従業員管理システム（Java / Spring Boot）
+# EMS（従業員管理システム）— Java / Spring Boot Console CLI
 
-コンソール（CLI）で動作する 社員管理システムです。  
-勤怠打刻、申請（休暇/残業/シフト変更）、メッセージ（送信/受信/既読）、メンタル記録、監査ログ、パスワード初期化依頼などを、**Spring Boot + H2（ファイルDB）**で一体運用できます。
-
-> ⚠️ 注意: 本プロジェクトのCLIは入力したパスワードが表示される仕様です（学習/演習用途想定）。周囲に注意して利用してください。
+ローカル環境で動作する **従業員管理システム（EMS）** です。  
+Spring Boot（WebApplicationType.NONE）で起動し、**コンソール（CLI）** から操作します。
 
 ---
 
-## 主な機能
+## 1. 主な機能
 
-- **ログイン / パスワード変更**
-- **勤怠**：出勤・退勤の打刻、最近の勤怠表示
-- **申請**：休暇（有給/特別）、残業、シフト変更
-  - 管理者は **自分の申請状況**（未処理/承認/却下の確認）も表示可能
-  - **管理者自身の申請は、別の管理者が承認/却下**する前提（自己承認不可）
-- **申請管理（管理者）**：未処理一覧、詳細、承認/却下
-- **メッセージ**：受信一覧 / 送信一覧 / 送信 / 既読
-  - **送信時は本人確認（パスワード再入力）**を要求
-  - 送信者は送信一覧で **既読状況（既読時刻）**を確認可能
-- **メンタル記録**：日次スコア + コメント
-- **監査ログ**：操作履歴の確認
-- **パスワード初期化依頼**：ログイン前依頼 → 管理者が承認/却下
+- ログイン / パスワード変更
+- 勤怠：出勤・退勤（打刻）/ 最近の勤怠表示
+- 申請：
+  - 休暇申請（期間）  
+    - **有給休暇**
+    - **特別休暇（忌引き / 結婚 / その他）**
+  - 残業申請（分）
+  - シフト変更申請（文字）
+- 申請管理（管理者）：
+  - 未処理一覧 / 詳細表示 / 承認 / 却下
+  - **管理者が自分の申請を承認・却下できない**（別管理者の承認が必要）
+  - 管理者は **自分の申請状況（一覧）** を確認可能
+- メッセージ：
+  - 受信一覧 / 送信一覧 / 既読（メッセージID指定）
+  - **送信者も送信済みメッセージを一覧表示**でき、**既読時刻**も確認可能
+  - 送信時に **本人確認（パスワード入力）** を必須化（従業員/管理者共通）
+- メンタル記録（今日）/ 管理者による閲覧
+- 監査ログ（最新）
+- パスワード初期化依頼（未処理/承認/却下）
 
 ---
 
-## 動作環境
+## 2. 動作環境（推奨）
 
 - Windows 10/11
-- PowerShell（推奨: Windows Terminal）
-- Java **17+**（推奨: 21）
-- Maven Wrapper同梱（`mvnw.cmd`）
+- Java 17+（手元で Java 21 でも動作確認）
+- PowerShell 5.1+（または PowerShell 7+）
+- Maven Wrapper 同梱（`mvnw.cmd`）
 
 ---
 
-## 起動（CLI）
+## 3. 起動方法（Windows / PowerShell）
 
-プロジェクトルートで実行します。
+### 3.1 推奨：run-cli.ps1 で起動
 
-### UTF-8（推奨）
+リポジトリ直下で実行します。
+
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\run-cli.ps1 -ConsoleEncoding UTF8
+cd "C:\path\to\ems"
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\run-cli.ps1
 ```
 
-### CP932（従来のWindowsコンソール互換）
+> うまく起動しない場合は、まず `cd` が **リポジトリ直下**（`pom.xml` がある場所）になっているか確認してください。
+
+### 3.2 文字化け対策（おすすめ）
+
+Windows Terminal を使う場合は UTF-8 が安定です。
+
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\run-cli.ps1 -ConsoleEncoding CP932
+chcp 65001 | Out-Null
+[Console]::InputEncoding  = [Text.Encoding]::UTF8
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
 ```
 
-停止は `Ctrl + C`。
-
----
-
-## データベース（H2）
-
-- DBはファイルとして保存されます（例：`./data/ems-db`）
-- **初期化したい場合**：アプリ停止後に `./data` を削除
-
----
-
-## よくあるトラブル（重要）
-
-### 「メイン・クラス.encoding=...」が見つからない
-`java -Dfile.encoding=UTF-8 ...` の引数が壊れている典型例です。  
-**`tools/run-cli.ps1` から起動**してください（引数を安全に渡す実装にしています）。
-
-### 初回だけ時間がかかる
-初回は `mvn compile` と依存解決が走るため時間がかかります。2回目以降は速くなります。
-
-### OneDrive配下での運用
-同期の競合やロックで不安定になることがあります。  
-安定運用したい場合は、OneDrive外（例：`C:\dev\ems`）へ移動して開発するのがおすすめです。
-
----
-
-## Gitに入れる（ローカルリポジトリ作成）
+古いコンソールで CP932（Shift-JIS）を使う場合は次の通りです。
 
 ```powershell
-cd "C:\Users\check\OneDrive\デスクトップ\社員管理システム\ems"
+chcp 932 | Out-Null
+[Console]::InputEncoding  = [Text.Encoding]::GetEncoding(932)
+[Console]::OutputEncoding = [Text.Encoding]::GetEncoding(932)
+```
 
+---
+
+## 4. パッケージ構成
+
+```
+src/main/java/com/example/ems
+├── EmsApplication.java          # Spring Boot エントリポイント
+├── cli                          # コンソールUI（入出力・メニュー）
+│   ├── EmsConsoleCli.java
+│   └── ConsoleIO.java
+├── config                       # 設定（例: PasswordConfig）
+│   └── PasswordConfig.java
+├── domain                       # エンティティ/ドメインモデル
+│   ├── AuditLog.java
+│   ├── Role.java
+│   └── UserAccount.java
+├── repository                   # DBアクセス（Spring Data JPA 等）
+│   ├── UserRepository.java
+│   └── AuditLogRepository.java
+└── service                      # ビジネスロジック（ユースケース）
+    └── AuditLogService.java
+
+src/main/resources
+└── V1__init.sql                 # DB初期化（Flyway マイグレーション）
+```
+
+- **cli**：画面（メニュー）とユーザー入出力。ビジネス判断は service に寄せるのが推奨。  
+- **config**：Bean 定義やパスワードエンコーダ設定等。  
+- **domain**：DBと対応するエンティティ、列挙型（Role 等）。  
+- **repository**：DBアクセス。JPA Repository やカスタムクエリ。  
+- **service**：ユースケース（承認、送信、監査など）を集約。  
+- **resources**：SQL、設定ファイル等。
+
+---
+
+## 5. データベース
+
+- H2（file）を使用します。
+- 例：`./data/ems-db`（実際の設定は `application.properties` 等を参照）
+
+---
+
+## 6. Git / GitHub への公開（手順を細かく）
+
+### 6.1 Git の初期設定（最初に1回）
+
+まず **自分の名前とメールアドレス** を設定します。
+
+```powershell
+git config --global user.name  "あなたの名前"
+git config --global user.email "you@example.com"
+git config --global --list
+```
+
+### 6.2 ローカルでコミットする
+
+```powershell
+cd "C:\path\to\ems"
 git init
-git config core.longpaths true
-
-# 推奨: 改行変換
-git config core.autocrlf true
-
-# 追加
 git add .
 git commit -m "Initial commit"
 ```
 
-GitHubへPushする場合（例）：
+### 6.3 GitHub にリポジトリを作成して push
+
+GitHub 側で空のリポジトリを作成したら（例: `ems`）、表示される URL を remote に登録します。
+
 ```powershell
 git branch -M main
-git remote add origin <YOUR_REPOSITORY_URL>
+git remote add origin https://github.com/Igarashi-0520/ems.git
 git push -u origin main
 ```
 
----
-
-## 免責・セキュリティ
-
-- 本プロジェクトは学習/演習用途を想定しています。
-- パスワードが表示される設計のため、業務利用・公開運用には適しません。
+> 2021年以降、GitHub はパスワード認証ではなく **Personal Access Token（PAT）** を使うのが一般的です。  
+> push 時に求められる認証情報は「GitHub のユーザー名 + PAT」です。
 
 ---
 
-## ドキュメント
+## 7. よくあるトラブル
 
-- `UserGuide.docx`：利用者向け操作説明書
-- `TechnicalGuide.docx`：技術説明書（構成/DB/運用/注意点）
+- **何も表示されない / すぐ閉じる**  
+  - `cd` が間違っている（`pom.xml` の場所で実行する）
+  - PowerShell の実行ポリシー（`-ExecutionPolicy Bypass` を付ける）
+- **文字化けする**  
+  - `chcp 65001`（UTF-8）または `chcp 932`（CP932）を試す
+- **クラスパスが長すぎる**  
+  - `tools/run-cli.ps1` を使う（コマンドを短くできる）
 
 ---
 
 ## License
 
-必要に応じてMIT等のライセンスを設定してください（未設定の場合は、社内規定に従ってください）。
+学習・検証用途のサンプルとして提供しています（必要に応じて追記してください）。

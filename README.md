@@ -111,7 +111,7 @@ src/main/resources
 
 ---
 
-## 6. Git / GitHub への公開(
+## 6. Git / GitHub への公開
 
 ### 6.1 Git の初期設定（最初に1回）
 

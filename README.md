@@ -77,7 +77,7 @@ src/main/resources
 
 ## ドキュメント
 
-- **操作説明書（管理者/従業員）**: `UserGuide_v4.docx`
+- **操作説明書（管理者/従業員）**: `UserGuide`
 
 ---
 

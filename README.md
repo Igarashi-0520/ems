@@ -93,22 +93,21 @@ H2のDBファイル（例：`*.mv.db`）は **成果物ではなく実行時デ�
 
 ---
 
-## パッケージ構成（推奨）
+## パッケージ構成
 
-> 既存コードはCLI寄りですが、運用/拡張を考えると **役割で分割** しておくと読みやすくなります。
+
 
 ```text
 com.example.ems
 ├── EmsApplication.java          # Spring Boot エントリポイント
 ├── cli                          # コンソールUI（EmsConsoleCli, ConsoleIO）
-├── config                       # 設定（例: PasswordConfig）
-├── domain                       # エンティティ/ドメインモデル（User, Message, Request...）
-├── repository                   # DBアクセス（Spring Data JPA 等）
-└── service                      # ビジネスロジック
+├── config                       # 設定（PasswordConfig）
+├── domain                       # エンティティ/ドメインモデル（AuditLog, Role, UserAccount）
+├── repository                   # DBアクセス（AuditLogRepository,UserRepository）
+└── service                      # ビジネスロジック(AuditLogService)
 
 src/main/resources
-└── db/migration
-    └── V1__init.sql             # Flywayマイグレーション（推奨配置）
+    └── V1__init.sql             # Flywayマイグレーション
 ```
 
 ---
@@ -120,7 +119,7 @@ src/main/resources
 
 ---
 
-## よくある質問（突っ込まれやすい点）
+## よくある質問
 - **Q. CLIなのにSpring Boot？**  
   A. DI・設定・DB接続・PasswordEncoder等を一体で扱えて、学習と保守に向くためです（`WebApplicationType.NONE` でCLI起動）。
 - **Q. 休暇の「有給/特別」はDB的にどう表現？**  
